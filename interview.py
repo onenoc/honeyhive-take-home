@@ -78,12 +78,23 @@ class Corpus:
         self.logistic = LogisticRegression(random_state=0).fit(self.x_train, self.y_train)
         #get accuracy
         return self.logistic.score(self.x_test, self.y_test)
+    
+    def words_influencing_result(self,idx,l=2):
+        #get the coefficients of the logistic regression model
+        coefs = self.logistic.coef_[0]
+        entry = self.x_test[idx]
+        linear_predictor_terms = coefs * entry
+        #get the l indices with the smallest linear predictor terms
+        top_linear_predictor_indices = np.argsort(linear_predictor_terms)[:l]
+        #get the words at those indices
+        return [self.vocabulary[i] for i in top_linear_predictor_indices]
 
     def predict(self,idx):
         #get the idx'th entry in the test set
         entry = self.x_test[idx]
         #predict whether the idx'th entry in the test set is accepted or not
         return self.logistic.predict(entry.reshape(1,-1))
+
 
 
 #read final_mle_dataset.json from file
@@ -96,13 +107,15 @@ inputs = ['product_name', 'product_description', 'prospect_name', 'prospect_indu
 #get entries of data where accepted is False
 rejected = [d for d in data if d['accepted'] == False]
 
+#1. Provide a topic analysis on what kinds of inputs and outputs the prompt template fails on
+
 #create a corpus object from the rejected entries, inputs
 corpus = Corpus(rejected, inputs,5,3)
 important_words_inputs = corpus.get_top_n_words_for_k_topics()
 print('topics for failures: inputs')
 print(important_words_inputs)
 
-#create a corpus object from the rejected entries, email
+#create a corpus object from the rejected entries, email (outputs)
 corpus = Corpus(rejected, ['email'],5,3)
 important_words_email = corpus.get_top_n_words_for_k_topics()
 print('topics for failures: outputs')
@@ -114,5 +127,31 @@ important_words_critique = corpus.get_top_n_words_for_k_topics()
 
 #create a corpus from all entries, email
 corpus = Corpus(data, ['email'],5,3)
+#fit logistic regression model, regressing email accepted/not on the tf-idf matrix
 corpus.logistic_regression()
-print(corpus.predict(0))
+
+# Get the coefficients of the logistic regression model
+coefs = corpus.logistic.coef_[0]
+# Get the indices of the features with the largest coefficients
+top_feature_indices = np.argsort(coefs)[:5]
+important_words = [corpus.vocabulary[i] for i in top_feature_indices]
+print('words with high negative logistic regression coefficients')
+print(important_words)
+
+#2.	Analyze the model outputs for problematic behaviors
+#We output the words with the smallest (negative with largest magnitude) linear predictor terms for the first 10 entries in the test set
+for i in range(10):
+    print('words with largest magnitude linear predictor terms for entry',i)
+    print(corpus.words_influencing_result(i))
+    print('actual result:',corpus.y_test[i])
+    print('predicted result:',corpus.predict(i))
+    print('')
+
+#3. Suggest improvements to the original prompt template
+#We suggest removing words that have high negative logistic regression coefficients
+
+#4. Suggest evaluation criteria to compare prompt templates
+#One simple approach is, given two prompt templates, use the probability output of logistic regression to determine which is more likely to be accepted
+#The one with the higher probability is better in the sense that it is more likely to be accepted
+
+
