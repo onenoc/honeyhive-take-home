@@ -214,7 +214,12 @@ if __name__ == '__main__':
             f.write('actual result: '+str(corpus.y_test[i])+'\n')
             f.write('predicted result: '+str(corpus.predict(i))+'\n\n')
 
-    #fit lda for the critique
+    #We also use another analysis for problematic behavior. We fit lda for the critique for both accepted and rejected entries.
+    #We then plot the average topic distribution for accepted and rejected entries.
+    #We see that the average topic distribution for accepted entries is less concentrated than for rejected entries.
+    #Rejected entries have much more concentration on topic 1, which is highly correlated with the words discus, news, guest
+    #Note that both accepted and rejected entries have high concentration on topic 1, but rejected entries have much higher
+
     corpus.get_top_n_words_for_k_topics('critique')
     corpus.plot_n_important_word_for_k_topics('critique',title='Rejected: Critique ')
     sum_accepted = 0
