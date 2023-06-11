@@ -2,7 +2,7 @@
 
 We address the following:<br>
 	1.	Provide a topic analysis on what kinds of inputs and outputs the prompt template fails on <br>
-  &nbsp;We take the subset of the data where the e-mails are not accepted. We use Latent Dirichlet Allocation (LDA) [1] to extract the $n$ words most associated with $k$ topics. We then print the words for each topic for the failures of: inputs and outputs.<br>
+  &nbsp;We take the subset of the data where the e-mails are not accepted. We use Latent Dirichlet Allocation (LDA) [1] to extract the $n$ words most associated with $k$ topics. We then print the words for each topic for the failures of: inputs and outputs. Normally, one can use plots to determine how many words and topic to use. However, given the small dataset, we see from printing out words for topics that if we go above 5 words and 3 topics, either the words do not give us much intuition or the topics appear to be somewhat redundant.<br>
 	2.	Analyze the model outputs for problematic behaviors<br>
 	3.	Suggest improvements to the original prompt template<br>
 	4.	Suggest evaluation criteria to compare prompt templates<br>
