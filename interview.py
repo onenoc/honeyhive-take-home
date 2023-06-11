@@ -15,9 +15,7 @@ from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-#make a class that initializes with a corpus
-#has methods to preprocess the corpus
-#get the top n words for k topics
+#Corpus class
 class Corpus:
     def __init__(self, corpus, fields, title=None,n=3, k=3):
         '''
@@ -42,10 +40,15 @@ class Corpus:
         self.X_tfidf = self.tfidf.fit_transform(self.X).toarray()
         #get the vocabulary
         self.vocabulary = self.vectorizer.get_feature_names_out()
+        #get indices
+        indices = np.arange(len(self.corpus))
         #split train/test
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.X_tfidf, self.y, test_size=0.2)
+        self.x_train, self.x_test, self.y_train, self.y_test, self.train_indices, self.test_indices = train_test_split(self.X_tfidf, self.y, indices, test_size=0.2)
     
     def preprocess_corpus(self):
+        '''
+        @summary: preprocess the corpus by removing punctuation, numbers, stopwords, and lemmatizing/stemming words
+        '''
         #remove punctuation
         corpus = [d.lower() for d in self.corpus]
         #remove numbers
@@ -63,6 +66,9 @@ class Corpus:
         return corpus
     
     def get_top_n_words_for_k_topics(self):
+        '''
+        @summary: use latent dirichlet allocation to find k topics and get the top n words for each topic
+        '''
         #use latent dirichlet allocation to find topics
         self.lda = LatentDirichletAllocation(n_components=self.k, max_iter=5, learning_method='online', learning_offset=50.,random_state=0).fit(self.X)
         #get the top n words for each topic
@@ -79,6 +85,9 @@ class Corpus:
         return important_words, values
     
     def plot_n_important_word_for_k_topics(self):
+        '''
+        @summary: plot the top n words for each topic in a bar chart
+        '''
         keys = self.important_words.keys()
         for key in keys:
             plt.figure()
@@ -87,12 +96,18 @@ class Corpus:
             plt.savefig(self.title+'Topic ' + str(key)+'.png')
 
     def logistic_regression(self):
+        '''
+        @summary: fit a logistic regression model to the data and return the accuracy on the test set
+        '''
         #fit logistic regression model
         self.logistic = LogisticRegression(random_state=0).fit(self.x_train, self.y_train)
         #get accuracy
         return self.logistic.score(self.x_test, self.y_test)
     
     def words_influencing_result(self,idx,l=2):
+        '''
+        @summary: return the l words that most influence the result towards failure (even if it doesn't fail) of the idx'th entry in the test set
+        '''
         #get the coefficients of the logistic regression model
         coefs = self.logistic.coef_[0]
         entry = self.x_test[idx]
@@ -103,10 +118,22 @@ class Corpus:
         return [self.vocabulary[i] for i in top_linear_predictor_indices]
 
     def predict(self,idx):
+        '''
+        @summary: predict whether the idx'th entry in the test set is accepted or not
+        '''
         #get the idx'th entry in the test set
         entry = self.x_test[idx]
         #predict whether the idx'th entry in the test set is accepted or not
         return self.logistic.predict(entry.reshape(1,-1))
+
+    def predict_proba(self,idx):
+        '''
+        @summary: predict the probability that the idx'th entry in the test set is accepted
+        '''
+        #get the idx'th entry in the test set
+        entry = self.x_test[idx]
+        #predict the probability that the idx'th entry in the test set is accepted
+        return self.logistic.predict_proba(entry.reshape(1,-1))
 
 #read final_mle_dataset.json from file
 with open('final_mle_dataset.json') as json_file:
@@ -133,18 +160,18 @@ corpus.plot_n_important_word_for_k_topics()
 #create a corpus from all entries, email
 corpus = Corpus(data, ['email'],5,3)
 #fit logistic regression model, regressing email accepted/not on the tf-idf matrix
-corpus.logistic_regression()
+print(corpus.logistic_regression())
 
 #Get the coefficients of the logistic regression model
 coefs = corpus.logistic.coef_[0]
 #Get the indices of the features with the largest coefficients
 top_feature_indices = np.argsort(coefs)[:5]
 important_words = [corpus.vocabulary[i] for i in top_feature_indices]
-print('words with high negative logistic regression coefficients')
+print('words with small logistic regression coefficients')
 print(important_words)
 
 #2.	Analyze the model outputs for problematic behaviors
-#We output the words with the smallest (negative with largest magnitude) linear predictor terms for the first 10 entries in the test set
+#We output the words with the smallest (ideally negative with largest magnitude) linear predictor terms for the first 10 entries in the test set
 for i in range(10):
     print('words with largest magnitude linear predictor terms for entry',i)
     print(corpus.words_influencing_result(i))
@@ -153,10 +180,31 @@ for i in range(10):
     print('')
 
 #3. Suggest improvements to the original prompt template
-#We suggest removing words that have high negative logistic regression coefficients
+#We suggest removing words that have the smallest logistic regression coefficients.
+#Outside of the pure machine learning, we notice that most of the critiques have to do with lack of personalization
+#The edited versions tend to include information about the propsect industry and prospect title. Thus we recommend including those.
+for i in range(100):
+    idx = corpus.test_indices[i]
+    if corpus.y_test[i]==0:
+        print('original e-mail')
+        print(data[idx]['email'])
+        print('we suggest removing the following words')
+        print(corpus.words_influencing_result(i))
+        print(data[idx]['critique'])
+        print('we suggest including the following words to make it seem more personalized, if they arent yet included')
+        print(data[idx]['prospect_industry'])
+        print(data[idx]['prospect_title'])
+        print('\n\n')
+
 
 #4. Suggest evaluation criteria to compare prompt templates
 #One simple approach is, given two prompt templates, use the probability output of logistic regression to determine which is more likely to be accepted
 #The one with the higher probability is better in the sense that it is more likely to be accepted
+#Here we predict, for the first ten entries, the probability of being accepted.
+for i in range(10):
+    print('Predicted probability of being accepted for entry',i)
+    print(corpus.predict_proba(i)[0][1])
+    print('actual result:',corpus.y_test[i])
+    print('')
 
 
