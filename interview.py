@@ -261,7 +261,7 @@ if __name__ == '__main__':
                 f.write('we suggest removing the following words\n')
                 f.write(str(corpus.words_influencing_result(i))+'\n')
                 f.write(data[idx]['critique']+'\n')
-                f.write('we suggest including the following words to make it seem more personalized, if they arent yet included\n')
+                f.write('we suggest including more of the following words to make it seem more personalized\n')
                 f.write(data[idx]['prospect_industry']+'\n')
                 f.write(data[idx]['prospect_title']+'\n\n\n')
 
