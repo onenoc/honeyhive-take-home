@@ -172,6 +172,7 @@ print(important_words)
 
 #2.	Analyze the model outputs for problematic behaviors
 #We output the words with the smallest (ideally negative with largest magnitude) linear predictor terms for the first 10 entries in the test set
+#This is not a great measure of problematic behavior, as it seems to have nothing to do with the critiques.
 for i in range(10):
     print('words with largest magnitude linear predictor terms for entry',i)
     print(corpus.words_influencing_result(i))
