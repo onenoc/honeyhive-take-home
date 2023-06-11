@@ -189,6 +189,7 @@ if __name__ == '__main__':
     #create a corpus from all entries, email
     corpus = Corpus(data, ['email'],5,3)
     #fit logistic regression model, regressing email accepted/not on the tf-idf matrix
+    print('logistic regression accuracy for all test entries, email')
     print(corpus.logistic_regression())
 
     #Get the coefficients of the logistic regression model
@@ -242,28 +243,37 @@ if __name__ == '__main__':
     #We suggest removing words that have the smallest logistic regression coefficients.
     #Outside of the pure machine learning, we notice that most of the critiques have to do with lack of personalization
     #The edited versions tend to include information about the propsect industry and prospect title. Thus we recommend including those.
-    # for i in range(100):
-    #     idx = corpus.test_indices[i]
-    #     if corpus.y_test[i]==0:
-    #         print('original e-mail')
-    #         print(data[idx]['email'])
-    #         print('we suggest removing the following words')
-    #         print(corpus.words_influencing_result(i))
-    #         print(data[idx]['critique'])
-    #         print('we suggest including the following words to make it seem more personalized, if they arent yet included')
-    #         print(data[idx]['prospect_industry'])
-    #         print(data[idx]['prospect_title'])
-    #         print('\n\n')
-
+    #we will write this to a file suggested_improvements.txt
+    #clear the file: suggested_improvements.txt
+    open('suggested_improvements.txt', 'w').close()
+    for i in range(100):
+        idx = corpus.test_indices[i]
+        if corpus.y_test[i]==0:
+            #here we write to the file
+            with open('suggested_improvements.txt','a') as f:
+                f.write('original e-mail\n')
+                f.write(data[idx]['email']+'\n')
+                f.write('we suggest removing the following words\n')
+                f.write(str(corpus.words_influencing_result(i))+'\n')
+                f.write(data[idx]['critique']+'\n')
+                f.write('we suggest including the following words to make it seem more personalized, if they arent yet included\n')
+                f.write(data[idx]['prospect_industry']+'\n')
+                f.write(data[idx]['prospect_title']+'\n\n\n')
 
     #4. Suggest evaluation criteria to compare prompt templates
     #One simple approach is, given two prompt templates, use the probability output of logistic regression to determine which is more likely to be accepted
     #The one with the higher probability is better in the sense that it is more likely to be accepted
     #Here we predict, for the first ten entries, the probability of being accepted.
-    # for i in range(10):
-    #     print('Predicted probability of being accepted for entry',i)
-    #     print(corpus.predict_proba(i)[0][1])
-    #     print('actual result:',corpus.y_test[i])
-    #     print('')
+    #We also print the actual result, to see if the model is accurate.
+    #we write this to a file predicted_probabilities.txt
+    #clear the file: predicted_probabilities.txt
+    open('predicted_probabilities.txt', 'w').close()
+    for i in range(10):
+        #here we write to the file
+        with open('predicted_probabilities.txt','a') as f:
+            f.write('Predicted probability of being accepted for entry '+str(i)+'\n')
+            f.write(str(corpus.predict_proba(i)[0][1])+'\n')
+            f.write('actual result: '+str(corpus.y_test[i])+'\n\n')
+
 
 
