@@ -1,50 +1,50 @@
 words with largest magnitude linear predictor terms for entry 0
-['camera', 'purchas']
+['im', 'chatbot']
 actual result: 0
 predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 1
-['amaz', 'honor']
-actual result: 1
-predicted result: [1]
-
-words with largest magnitude linear predictor terms for entry 2
-['skill', 'love']
-actual result: 1
-predicted result: [1]
-
-words with largest magnitude linear predictor terms for entry 3
-['kitchen', 'decid']
-actual result: 0
-predicted result: [1]
-
-words with largest magnitude linear predictor terms for entry 4
-['david', 'hotel']
-actual result: 1
-predicted result: [1]
-
-words with largest magnitude linear predictor terms for entry 5
-['im', 'purchas']
+['speaker', 'product']
 actual result: 0
 predicted result: [0]
 
+words with largest magnitude linear predictor terms for entry 2
+['toy', 'amaz']
+actual result: 0
+predicted result: [0]
+
+words with largest magnitude linear predictor terms for entry 3
+['love', 'food']
+actual result: 1
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 4
+['im', 'chatbot']
+actual result: 0
+predicted result: [0]
+
+words with largest magnitude linear predictor terms for entry 5
+['help', 'mia']
+actual result: 1
+predicted result: [0]
+
 words with largest magnitude linear predictor terms for entry 6
-['purchas', 'hope']
+['im', 'think']
 actual result: 1
 predicted result: [1]
 
 words with largest magnitude linear predictor terms for entry 7
-['im', 'hope']
-actual result: 0
-predicted result: [1]
-
-words with largest magnitude linear predictor terms for entry 8
-['lock', 'keyless']
+['peopl', 'know']
 actual result: 1
 predicted result: [1]
 
-words with largest magnitude linear predictor terms for entry 9
-['good', 'lifestyl']
+words with largest magnitude linear predictor terms for entry 8
+['im', 'think']
 actual result: 0
 predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 9
+['chatbot', 'polit']
+actual result: 1
+predicted result: [0]
 

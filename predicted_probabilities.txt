@@ -1,40 +1,40 @@
 Predicted probability of being accepted for entry 0
-0.42563014196165083
+0.36298237150810064
 actual result: 0
 
 Predicted probability of being accepted for entry 1
-0.6558281057579745
-actual result: 1
+0.45405333046424873
+actual result: 0
 
 Predicted probability of being accepted for entry 2
-0.6856961157267901
-actual result: 1
+0.3965068267224324
+actual result: 0
 
 Predicted probability of being accepted for entry 3
-0.5060024960156188
-actual result: 0
-
-Predicted probability of being accepted for entry 4
-0.6862736397947858
+0.5836251127036656
 actual result: 1
 
-Predicted probability of being accepted for entry 5
-0.3638375441617213
+Predicted probability of being accepted for entry 4
+0.28121085756739655
 actual result: 0
 
+Predicted probability of being accepted for entry 5
+0.43240273877117463
+actual result: 1
+
 Predicted probability of being accepted for entry 6
-0.6749851308188392
+0.5775936678105585
 actual result: 1
 
 Predicted probability of being accepted for entry 7
-0.5681100830808733
-actual result: 0
-
-Predicted probability of being accepted for entry 8
-0.6369348857638708
+0.7015226609583558
 actual result: 1
 
-Predicted probability of being accepted for entry 9
-0.6212770530238263
+Predicted probability of being accepted for entry 8
+0.5038999961134675
 actual result: 0
+
+Predicted probability of being accepted for entry 9
+0.40420204345985417
+actual result: 1
 

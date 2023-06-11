@@ -164,7 +164,7 @@ class Corpus:
 
 def analyze_corpus(corpus,inputs,title,n,k):
     '''
-    @summary: analyze a corpus
+    @summary: analyze a corpus, plot the top n words for each of the k topics
     '''
     #create a corpus object from the corpus, inputs, plot the top n words for each of the k topics
     corpus = Corpus(corpus, inputs,title,n,k)
@@ -284,6 +284,3 @@ if __name__ == '__main__':
             f.write('Predicted probability of being accepted for entry '+str(i)+'\n')
             f.write(str(corpus.predict_proba(i)[0][1])+'\n')
             f.write('actual result: '+str(corpus.y_test[i])+'\n\n')
-
-
-
