@@ -27,6 +27,7 @@ class Corpus:
         self.n = n
         self.k = k
         self.y = [d['accepted'] for d in corpus]
+        self.critique = [d['critique'] for d in corpus]
         self.y = np.array(self.y)
         self.title = title
         corpus = [{k: d[k] for k in fields} for d in corpus]
@@ -35,6 +36,8 @@ class Corpus:
         #get a matrix of word counts
         self.vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=1000, stop_words='english')
         self.X = self.vectorizer.fit_transform(self.corpus)
+        self.vectorizer_critique = CountVectorizer(max_df=0.95, min_df=2, max_features=1000, stop_words='english')
+        self.X_critique = self.vectorizer_critique.fit_transform(self.critique)
         #create tf-idf matrix
         self.tfidf = TfidfTransformer()
         self.X_tfidf = self.tfidf.fit_transform(self.X).toarray()
@@ -65,35 +68,60 @@ class Corpus:
         corpus = [' '.join([lemmatizer.lemmatize(w) for w in d.split()]) for d in corpus]
         return corpus
     
-    def get_top_n_words_for_k_topics(self):
+    def get_top_n_words_for_k_topics(self,critique=False):
         '''
         @summary: use latent dirichlet allocation to find k topics and get the top n words for each topic
         '''
         #use latent dirichlet allocation to find topics
-        self.lda = LatentDirichletAllocation(n_components=self.k, max_iter=5, learning_method='online', learning_offset=50.,random_state=0).fit(self.X)
+        if critique:
+            self.lda_critique = LatentDirichletAllocation(n_components=self.k, max_iter=5, learning_method='online', learning_offset=50.,random_state=0).fit(self.X_critique)
+        else:
+            self.lda = LatentDirichletAllocation(n_components=self.k, max_iter=5, learning_method='online', learning_offset=50.,random_state=0).fit(self.X)
         #get the top n words for each topic
         important_words = {}
         values = {}
-        for topic_idx, topic in enumerate(self.lda.components_):
+        if critique:
+            to_enumerate = enumerate(self.lda_critique.components_)
+        else:
+            to_enumerate = enumerate(self.lda.components_)
+        for topic_idx, topic in to_enumerate:
             #get the indices of the top n words for each topic
             word_idx = np.argsort(topic)[::-1][:self.n]
             #get the words at those indices
             important_words[topic_idx] = [self.vocabulary[i] for i in word_idx]
             values[topic_idx] = [topic[i] for i in word_idx]
-        self.important_words = important_words
-        self.values = values
+        if critique:
+            self.important_words_critique = important_words
+            self.values_critique = values
+        else:
+            self.important_words = important_words
+            self.values = values
         return important_words, values
     
-    def plot_n_important_word_for_k_topics(self):
+    def get_topics_for_index(self,idx,critique=False):
+        if critique:
+            return self.lda_critique.transform(self.X_critique[idx])
+        else:
+            return self.lda.transform(self.X[idx])
+    
+    def plot_n_important_word_for_k_topics(self,critique=False,title=None):
         '''
         @summary: plot the top n words for each topic in a bar chart
         '''
-        keys = self.important_words.keys()
+        if critique:
+            keys = self.important_words_critique.keys()
+        else:
+            keys = self.important_words.keys()
+        if title==None:
+            title = self.title
         for key in keys:
             plt.figure()
-            plt.bar(self.important_words[key],self.values[key])
-            plt.title(self.title+'Topic ' + str(key))
-            plt.savefig(self.title+'Topic ' + str(key)+'.png')
+            if critique:
+                plt.bar(self.important_words_critique[key],self.values_critique[key])
+            else:
+                plt.bar(self.important_words[key],self.values[key])
+            plt.title(title+'Topic ' + str(key))
+            plt.savefig(title+'Topic ' + str(key)+'.png')
 
     def logistic_regression(self):
         '''
@@ -135,77 +163,107 @@ class Corpus:
         #predict the probability that the idx'th entry in the test set is accepted
         return self.logistic.predict_proba(entry.reshape(1,-1))
 
-#read final_mle_dataset.json from file
-with open('final_mle_dataset.json') as json_file:
-    data = json.load(json_file)
+if __name__ == '__main__':
+    #read final_mle_dataset.json from file
+    with open('final_mle_dataset.json') as json_file:
+        data = json.load(json_file)
 
-#get data[0]'s relevant keys
-inputs = ['product_name', 'product_description', 'prospect_name', 'prospect_industry', 'prospect_title']
+    #get data[0]'s relevant keys
+    inputs = ['product_name', 'product_description', 'prospect_name', 'prospect_industry', 'prospect_title']
 
-#get entries of data where accepted is False
-rejected = [d for d in data if d['accepted'] == False]
+    #get entries of data where accepted is False
+    rejected = [d for d in data if d['accepted'] == False]
 
-#1. Provide a topic analysis on what kinds of inputs and outputs the prompt template fails on
+    #1. Provide a topic analysis on what kinds of inputs and outputs the prompt template fails on
 
-#create a corpus object from the rejected entries, inputs
-corpus = Corpus(rejected, inputs,'Rejected: Inputs ',5,3)
-corpus.get_top_n_words_for_k_topics()
-corpus.plot_n_important_word_for_k_topics()
+    #create a corpus object from the rejected entries, inputs, plot the top 5 words for each of the 3 topics
+    corpus = Corpus(rejected, inputs,'Rejected: Inputs ',5,3)
+    corpus.get_top_n_words_for_k_topics()
+    corpus.plot_n_important_word_for_k_topics()
 
-#create a corpus object from the rejected entries, email (outputs)
-corpus = Corpus(rejected, ['email'],'Rejected: E-mail ',5,3)
-corpus.get_top_n_words_for_k_topics()
-corpus.plot_n_important_word_for_k_topics()
+    #create a corpus object from the rejected entries, email (outputs)
+    corpus = Corpus(rejected, ['email'],'Rejected: E-mail ',5,3)
+    corpus.get_top_n_words_for_k_topics()
+    corpus.plot_n_important_word_for_k_topics()
 
-#create a corpus from all entries, email
-corpus = Corpus(data, ['email'],5,3)
-#fit logistic regression model, regressing email accepted/not on the tf-idf matrix
-print(corpus.logistic_regression())
+    #create a corpus from all entries, email
+    corpus = Corpus(data, ['email'],5,3)
+    #fit logistic regression model, regressing email accepted/not on the tf-idf matrix
+    print(corpus.logistic_regression())
 
-#Get the coefficients of the logistic regression model
-coefs = corpus.logistic.coef_[0]
-#Get the indices of the features with the largest coefficients
-top_feature_indices = np.argsort(coefs)[:5]
-important_words = [corpus.vocabulary[i] for i in top_feature_indices]
-print('words with small logistic regression coefficients')
-print(important_words)
+    #Get the coefficients of the logistic regression model
+    coefs = corpus.logistic.coef_[0]
+    #Get the indices of the features with the largest coefficients
+    top_feature_indices = np.argsort(coefs)[:5]
+    important_words = [corpus.vocabulary[i] for i in top_feature_indices]
+    print('words with small logistic regression coefficients')
+    print(important_words)
 
-#2.	Analyze the model outputs for problematic behaviors
-#We output the words with the smallest (ideally negative with largest magnitude) linear predictor terms for the first 10 entries in the test set
-#This is not a great measure of problematic behavior, as it seems to have nothing to do with the critiques.
-for i in range(10):
-    print('words with largest magnitude linear predictor terms for entry',i)
-    print(corpus.words_influencing_result(i))
-    print('actual result:',corpus.y_test[i])
-    print('predicted result:',corpus.predict(i))
-    print('')
+    #2.	Analyze the model outputs for problematic behaviors
+    #We output the words with the smallest (ideally negative with largest magnitude) linear predictor terms for the first 10 entries in the test set
+    #This is not a great measure of problematic behavior, as it seems to have nothing to do with the critiques.
+    #we will write this to a file: problematic_behavior_words.txt
+    #clear the file: problematic_behavior_words.txt
+    open('problematic_behavior.txt', 'w').close()
+    for i in range(10):
+        #here we write to the file
+        with open('problematic_behavior.txt','a') as f:
+            f.write('words with largest magnitude linear predictor terms for entry '+str(i)+'\n')
+            f.write(str(corpus.words_influencing_result(i))+'\n')
+            f.write('actual result: '+str(corpus.y_test[i])+'\n')
+            f.write('predicted result: '+str(corpus.predict(i))+'\n\n')
 
-#3. Suggest improvements to the original prompt template
-#We suggest removing words that have the smallest logistic regression coefficients.
-#Outside of the pure machine learning, we notice that most of the critiques have to do with lack of personalization
-#The edited versions tend to include information about the propsect industry and prospect title. Thus we recommend including those.
-for i in range(100):
-    idx = corpus.test_indices[i]
-    if corpus.y_test[i]==0:
-        print('original e-mail')
-        print(data[idx]['email'])
-        print('we suggest removing the following words')
-        print(corpus.words_influencing_result(i))
-        print(data[idx]['critique'])
-        print('we suggest including the following words to make it seem more personalized, if they arent yet included')
-        print(data[idx]['prospect_industry'])
-        print(data[idx]['prospect_title'])
-        print('\n\n')
+    #fit lda for the critique
+    corpus.get_top_n_words_for_k_topics('critique')
+    corpus.plot_n_important_word_for_k_topics('critique',title='Rejected: Critique ')
+    sum_accepted = 0
+    len_accepted = 0
+    sum_fail = 0
+    len_fail = 0
+    for i in range(len(corpus.test_indices)):
+        idx = corpus.test_indices[i]
+        if corpus.y_test[i]==1:
+            sum_accepted += corpus.get_topics_for_index(idx,'critique')[0]
+            len_accepted+=1
+        else:
+            sum_fail += corpus.get_topics_for_index(idx,'critique')[0]
+            len_fail +=1
+    plt.figure()
+    plt.bar([0,1,2],sum_accepted)
+    plt.title('Average topic distribution for critiques: accepted')
+    plt.savefig('critique accepted.png')
+    plt.figure()
+    plt.bar([0,1,2],sum_fail)
+    plt.title('Average topic distribution for rejected critiques: rejected')
+    plt.savefig('critique fail.png')
+   
+
+    #3. Suggest improvements to the original prompt template
+    #We suggest removing words that have the smallest logistic regression coefficients.
+    #Outside of the pure machine learning, we notice that most of the critiques have to do with lack of personalization
+    #The edited versions tend to include information about the propsect industry and prospect title. Thus we recommend including those.
+    # for i in range(100):
+    #     idx = corpus.test_indices[i]
+    #     if corpus.y_test[i]==0:
+    #         print('original e-mail')
+    #         print(data[idx]['email'])
+    #         print('we suggest removing the following words')
+    #         print(corpus.words_influencing_result(i))
+    #         print(data[idx]['critique'])
+    #         print('we suggest including the following words to make it seem more personalized, if they arent yet included')
+    #         print(data[idx]['prospect_industry'])
+    #         print(data[idx]['prospect_title'])
+    #         print('\n\n')
 
 
-#4. Suggest evaluation criteria to compare prompt templates
-#One simple approach is, given two prompt templates, use the probability output of logistic regression to determine which is more likely to be accepted
-#The one with the higher probability is better in the sense that it is more likely to be accepted
-#Here we predict, for the first ten entries, the probability of being accepted.
-for i in range(10):
-    print('Predicted probability of being accepted for entry',i)
-    print(corpus.predict_proba(i)[0][1])
-    print('actual result:',corpus.y_test[i])
-    print('')
+    #4. Suggest evaluation criteria to compare prompt templates
+    #One simple approach is, given two prompt templates, use the probability output of logistic regression to determine which is more likely to be accepted
+    #The one with the higher probability is better in the sense that it is more likely to be accepted
+    #Here we predict, for the first ten entries, the probability of being accepted.
+    # for i in range(10):
+    #     print('Predicted probability of being accepted for entry',i)
+    #     print(corpus.predict_proba(i)[0][1])
+    #     print('actual result:',corpus.y_test[i])
+    #     print('')
 
 
