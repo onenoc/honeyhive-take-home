@@ -1,0 +1,50 @@
+words with largest magnitude linear predictor terms for entry 0
+['camera', 'purchas']
+actual result: 0
+predicted result: [0]
+
+words with largest magnitude linear predictor terms for entry 1
+['amaz', 'honor']
+actual result: 1
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 2
+['skill', 'love']
+actual result: 1
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 3
+['kitchen', 'decid']
+actual result: 0
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 4
+['david', 'hotel']
+actual result: 1
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 5
+['im', 'purchas']
+actual result: 0
+predicted result: [0]
+
+words with largest magnitude linear predictor terms for entry 6
+['purchas', 'hope']
+actual result: 1
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 7
+['im', 'hope']
+actual result: 0
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 8
+['lock', 'keyless']
+actual result: 1
+predicted result: [1]
+
+words with largest magnitude linear predictor terms for entry 9
+['good', 'lifestyl']
+actual result: 0
+predicted result: [1]
+

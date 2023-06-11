@@ -162,6 +162,16 @@ class Corpus:
         #predict the probability that the idx'th entry in the test set is accepted
         return self.logistic.predict_proba(entry.reshape(1,-1))
 
+def analyze_corpus(corpus,inputs,title,n,k):
+    '''
+    @summary: analyze a corpus
+    '''
+    #create a corpus object from the corpus, inputs, plot the top n words for each of the k topics
+    corpus = Corpus(corpus, inputs,title,n,k)
+    corpus.get_top_n_words_for_k_topics()
+    corpus.plot_n_important_word_for_k_topics()
+    return corpus
+
 if __name__ == '__main__':
     #read final_mle_dataset.json from file
     with open('final_mle_dataset.json') as json_file:
@@ -176,14 +186,10 @@ if __name__ == '__main__':
     #1. Provide a topic analysis on what kinds of inputs and outputs the prompt template fails on
 
     #create a corpus object from the rejected entries, inputs, plot the top 5 words for each of the 3 topics
-    corpus = Corpus(rejected, inputs,'Rejected: Inputs ',5,3)
-    corpus.get_top_n_words_for_k_topics()
-    corpus.plot_n_important_word_for_k_topics()
+    analyze_corpus(rejected, inputs,'Rejected: Inputs ',5,3)
 
     #create a corpus object from the rejected entries, email (outputs)
-    corpus = Corpus(rejected, ['email'],'Rejected: E-mail ',5,3)
-    corpus.get_top_n_words_for_k_topics()
-    corpus.plot_n_important_word_for_k_topics()
+    analyze_corpus(rejected, ['email'],'Rejected: E-mail ',5,3)
 
     #create a corpus from all entries, email
     corpus = Corpus(data, ['email'],5,3)
