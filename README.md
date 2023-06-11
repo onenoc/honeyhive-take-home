@@ -1,4 +1,4 @@
-# honeyhive-take-home
+# Honeyhive Take Home
 
 To run this, make sure one has final_mle_dataset.json in the same folder and run python interview.py. We address the following:<br>
 <br>
