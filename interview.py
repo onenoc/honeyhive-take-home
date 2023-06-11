@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
+import pyLDAvis
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -18,7 +19,7 @@ from sklearn.model_selection import train_test_split
 #has methods to preprocess the corpus
 #get the top n words for k topics
 class Corpus:
-    def __init__(self, corpus, fields, n=3, k=3):
+    def __init__(self, corpus, fields, title=None,n=3, k=3):
         '''
         @param corpus: a list of dictionaries
         @param fields: a list of strings that we want to extract from each dictionary in corpus
@@ -29,6 +30,7 @@ class Corpus:
         self.k = k
         self.y = [d['accepted'] for d in corpus]
         self.y = np.array(self.y)
+        self.title = title
         corpus = [{k: d[k] for k in fields} for d in corpus]
         self.corpus = [' '.join([d[k] for k in fields]) for d in corpus]
         self.corpus = self.preprocess_corpus()
@@ -42,7 +44,6 @@ class Corpus:
         self.vocabulary = self.vectorizer.get_feature_names_out()
         #split train/test
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.X_tfidf, self.y, test_size=0.2)
-        
     
     def preprocess_corpus(self):
         #remove punctuation
@@ -66,13 +67,25 @@ class Corpus:
         self.lda = LatentDirichletAllocation(n_components=self.k, max_iter=5, learning_method='online', learning_offset=50.,random_state=0).fit(self.X)
         #get the top n words for each topic
         important_words = {}
+        values = {}
         for topic_idx, topic in enumerate(self.lda.components_):
             #get the indices of the top n words for each topic
             word_idx = np.argsort(topic)[::-1][:self.n]
             #get the words at those indices
             important_words[topic_idx] = [self.vocabulary[i] for i in word_idx]
-        return important_words
+            values[topic_idx] = [topic[i] for i in word_idx]
+        self.important_words = important_words
+        self.values = values
+        return important_words, values
     
+    def plot_n_important_word_for_k_topics(self):
+        keys = self.important_words.keys()
+        for key in keys:
+            plt.figure()
+            plt.bar(self.important_words[key],self.values[key])
+            plt.title(self.title+'Topic ' + str(key))
+            plt.savefig(self.title+'Topic ' + str(key)+'.png')
+
     def logistic_regression(self):
         #fit logistic regression model
         self.logistic = LogisticRegression(random_state=0).fit(self.x_train, self.y_train)
@@ -95,8 +108,6 @@ class Corpus:
         #predict whether the idx'th entry in the test set is accepted or not
         return self.logistic.predict(entry.reshape(1,-1))
 
-
-
 #read final_mle_dataset.json from file
 with open('final_mle_dataset.json') as json_file:
     data = json.load(json_file)
@@ -110,29 +121,23 @@ rejected = [d for d in data if d['accepted'] == False]
 #1. Provide a topic analysis on what kinds of inputs and outputs the prompt template fails on
 
 #create a corpus object from the rejected entries, inputs
-corpus = Corpus(rejected, inputs,5,3)
-important_words_inputs = corpus.get_top_n_words_for_k_topics()
-print('topics for failures: inputs')
-print(important_words_inputs)
+corpus = Corpus(rejected, inputs,'Rejected: Inputs ',5,3)
+corpus.get_top_n_words_for_k_topics()
+corpus.plot_n_important_word_for_k_topics()
 
 #create a corpus object from the rejected entries, email (outputs)
-corpus = Corpus(rejected, ['email'],5,3)
-important_words_email = corpus.get_top_n_words_for_k_topics()
-print('topics for failures: outputs')
-print(important_words_email)
-
-#create a corpus object from the rejected entries, critique
-corpus = Corpus(rejected, ['critique'],1,3)
-important_words_critique = corpus.get_top_n_words_for_k_topics()
+corpus = Corpus(rejected, ['email'],'Rejected: E-mail ',5,3)
+corpus.get_top_n_words_for_k_topics()
+corpus.plot_n_important_word_for_k_topics()
 
 #create a corpus from all entries, email
 corpus = Corpus(data, ['email'],5,3)
 #fit logistic regression model, regressing email accepted/not on the tf-idf matrix
 corpus.logistic_regression()
 
-# Get the coefficients of the logistic regression model
+#Get the coefficients of the logistic regression model
 coefs = corpus.logistic.coef_[0]
-# Get the indices of the features with the largest coefficients
+#Get the indices of the features with the largest coefficients
 top_feature_indices = np.argsort(coefs)[:5]
 important_words = [corpus.vocabulary[i] for i in top_feature_indices]
 print('words with high negative logistic regression coefficients')

@@ -1,1 +1,0 @@
-# honeyhive-take-home
