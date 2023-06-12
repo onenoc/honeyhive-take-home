@@ -32,6 +32,7 @@ class Corpus:
         corpus = [{k: d[k] for k in fields} for d in corpus]
         self.corpus = [' '.join([d[k] for k in fields]) for d in corpus]
         self.corpus = self.preprocess_corpus()
+        self.critique = self.preprocess_corpus(critique=True)
         #get a matrix of word counts
         self.vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=1000, stop_words='english')
         self.X = self.vectorizer.fit_transform(self.corpus)
@@ -42,17 +43,21 @@ class Corpus:
         self.X_tfidf = self.tfidf.fit_transform(self.X).toarray()
         #get the vocabulary
         self.vocabulary = self.vectorizer.get_feature_names_out()
+        self.vocab_critique = self.vectorizer_critique.get_feature_names_out()
         #get indices
         indices = np.arange(len(self.corpus))
         #split train/test
         self.x_train, self.x_test, self.y_train, self.y_test, self.train_indices, self.test_indices = train_test_split(self.X_tfidf, self.y, indices, test_size=0.2)
     
-    def preprocess_corpus(self):
+    def preprocess_corpus(self,critique=False):
         '''
         @summary: preprocess the corpus by removing punctuation, numbers, stopwords, and lemmatizing/stemming words
         '''
         #remove punctuation
-        corpus = [d.lower() for d in self.corpus]
+        if critique==False:
+            corpus = [d.lower() for d in self.corpus]
+        else:
+            corpus = [d.lower() for d in self.critique]
         #remove numbers
         corpus = [re.sub(r'[^\w\s]','',d) for d in corpus]
         #remove stopwords
@@ -87,7 +92,10 @@ class Corpus:
             #get the indices of the top n words for each topic
             word_idx = np.argsort(topic)[::-1][:self.n]
             #get the words at those indices
-            important_words[topic_idx] = [self.vocabulary[i] for i in word_idx]
+            if critique:
+                important_words[topic_idx] = [self.vocab_critique[i] for i in word_idx]
+            else:
+                important_words[topic_idx] = [self.vocabulary[i] for i in word_idx]
             values[topic_idx] = [topic[i] for i in word_idx]
         if critique:
             self.important_words_critique = important_words

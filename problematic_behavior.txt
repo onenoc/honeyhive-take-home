@@ -1,50 +1,50 @@
 words with largest magnitude linear predictor terms for entry 0
-['im', 'chatbot']
+['speaker', 'amaz']
 actual result: 0
 predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 1
-['speaker', 'product']
-actual result: 0
-predicted result: [0]
+['im', 'think']
+actual result: 1
+predicted result: [1]
 
 words with largest magnitude linear predictor terms for entry 2
-['toy', 'amaz']
-actual result: 0
+['im', 'food']
+actual result: 1
 predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 3
-['love', 'food']
-actual result: 1
+['hope', 'love']
+actual result: 0
 predicted result: [1]
 
 words with largest magnitude linear predictor terms for entry 4
 ['im', 'chatbot']
-actual result: 0
+actual result: 1
 predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 5
-['help', 'mia']
+['product', 'email']
 actual result: 1
 predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 6
-['im', 'think']
-actual result: 1
-predicted result: [1]
+['im', 'chatbot']
+actual result: 0
+predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 7
-['peopl', 'know']
+['help', 'great']
 actual result: 1
 predicted result: [1]
 
 words with largest magnitude linear predictor terms for entry 8
-['im', 'think']
+['think', 'hope']
 actual result: 0
-predicted result: [1]
+predicted result: [0]
 
 words with largest magnitude linear predictor terms for entry 9
-['chatbot', 'polit']
+['laptop', 'good']
 actual result: 1
 predicted result: [0]
 
