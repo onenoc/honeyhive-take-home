@@ -12,7 +12,7 @@ Our second approach was to analyze the topic distributions for each critique. We
 	<br>
 	<br>
 	3.	**Suggest improvements to the original prompt template**<br>
-	&nbsp;Our naive suggestion is to remove words in the e-mail that are predictive of failure, although this could lead to a non-sensical sentence. We coded this up as a suggestion only, suggesting removing the two (a hyperparameter) words with the smallest effect on the linear preidctor. One could also re-generate the e-mail using a decoder language model and eliminate any predicted words that have large magnitude negative coefficients in the logistic regression model.<br>
+	&nbsp;Our naive suggestion is to remove words in the e-mail that are predictive of failure, although this could lead to a non-sensical sentence. We coded this up as a suggestion only, suggesting removing the two (a hyperparameter) words with the smallest effect on the linear predictor. One could also re-generate the e-mail using a decoder language model and eliminate any predicted words that have large magnitude negative coefficients in the logistic regression model.<br>
 
 Given the previous finding that the words predictive of failure have very little relationship to the critique, we look at the critiques (this involves no machine learning) to gain intuition. We notice that they repeatedly say that there needs to be personalization. Thus we add the suggestion to use the prospect industry and title more frequently.
 	<br>
